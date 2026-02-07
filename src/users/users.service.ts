@@ -1,46 +1,51 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
-  private nextId = 1;
+  constructor(private readonly prisma: PrismaService) {}
 
-  create(dto: CreateUserDto): User {
-    const newUser: User = {
-      id: this.nextId++,
-      name: dto.name,
-      email: dto.email,
-      password: dto.password,
-      isActive: true,
-      createdAt: new Date().toISOString(),
-    };
-
-    this.users.push(newUser);
-    return newUser;
+  async create(dto: CreateUserDto) {
+    return this.prisma.user.create({
+      data: {
+        name: dto.name,
+        email: dto.email,
+        password: dto.password,
+      },
+    });
   }
 
-  findAll(): User[] {
-    return this.users;
+  async findAll() {
+    return this.prisma.user.findMany({
+      orderBy: { id: 'asc' },
+    });
   }
 
-  findOne(id: number): User {
-    const found = this.users.find((u) => u.id === id);
-    if (!found) throw new NotFoundException(`User ${id} no existe`);
-    return found;
-  }
+  async findOne(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
 
-  update(id: number, dto: UpdateUserDto): User {
-    const user = this.findOne(id);
-    Object.assign(user, dto);
+    if (!user) throw new NotFoundException(`User ${id} no existe`);
     return user;
   }
 
-  remove(id: number): void {
-    const idx = this.users.findIndex((u) => u.id === id);
-    if (idx === -1) throw new NotFoundException(`User ${id} no existe`);
-    this.users.splice(idx, 1);
+  async update(id: number, dto: UpdateUserDto) {
+    await this.findOne(id); // asegura 404 si no existe
+
+    return this.prisma.user.update({
+      where: { id },
+      data: dto,
+    });
+  }
+
+  async remove(id: number) {
+    await this.findOne(id);
+
+    await this.prisma.user.delete({
+      where: { id },
+    });
   }
 }

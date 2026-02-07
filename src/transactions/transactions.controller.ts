@@ -9,25 +9,25 @@ export class TransactionsController {
 
   // Crear transacción
   @Post()
-  create(@Body() dto: CreateTransactionDto) {
+  async create(@Body() dto: CreateTransactionDto) {
     return this.transactionsService.create(dto);
   }
 
   // Listar todas las transacciones
   @Get()
-  findAll() {
-    return this.transactionsService.findAll();
+  async findAll() {
+    return await this.transactionsService.findAll();
   }
 
   // Obtener transacción por ID
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.transactionsService.findOne(id);
   }
 
   // Actualizar parcial
   @Patch(':id')
-  updatePartial(
+  async updatePartial(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateTransactionDto,
   ) {
@@ -36,7 +36,7 @@ export class TransactionsController {
 
   // Actualizar completo
   @Put(':id')
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateTransactionDto,
   ) {
@@ -46,7 +46,7 @@ export class TransactionsController {
   // Eliminar
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    this.transactionsService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.transactionsService.remove(id);
   }
 }

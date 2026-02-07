@@ -3,54 +3,47 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateBudgetDto } from './dto/create-budget.dto';
 import { UpdateBudgetDto } from './dto/update-budget.dto';
-import { Budget } from './entities/budget.entity';
 
 @Injectable()
 export class BudgetsService {
-  private budgets: Budget[] = [];
-  private nextId = 1;
+  constructor(private readonly prisma: PrismaService) {}
 
-  create(dto: CreateBudgetDto): Budget {
-    // Validación lógica básica
+  async create(dto: CreateBudgetDto) {
     if (dto.month < 1 || dto.month > 12) {
       throw new BadRequestException('El mes debe estar entre 1 y 12');
     }
 
-    const newBudget: Budget = {
-      id: this.nextId++,
-      amountLimit: dto.amountLimit,
-      month: dto.month,
-      year: dto.year,
-      userId: dto.userId,
-      categoryId: dto.categoryId,
-      createdAt: new Date().toISOString(),
-    };
-
-    this.budgets.push(newBudget);
-    return newBudget;
+    return this.prisma.budget.create({
+      data: {
+        amountLimit: dto.amountLimit,
+        month: dto.month,
+        year: dto.year,
+        userId: dto.userId,
+        categoryId: dto.categoryId,
+      },
+    });
   }
 
-  findAll(): Budget[] {
-    return this.budgets;
+  async findAll() {
+    return this.prisma.budget.findMany({ orderBy: { id: 'asc' } });
   }
 
-  findOne(id: number): Budget {
-    const found = this.budgets.find((b) => b.id === id);
+  async findOne(id: number) {
+    const found = await this.prisma.budget.findUnique({ where: { id } });
     if (!found) throw new NotFoundException(`Budget ${id} no existe`);
     return found;
   }
 
-  update(id: number, dto: UpdateBudgetDto): Budget {
-    const budget = this.findOne(id);
-    Object.assign(budget, dto);
-    return budget;
+  async update(id: number, dto: UpdateBudgetDto) {
+    await this.findOne(id);
+    return this.prisma.budget.update({ where: { id }, data: dto });
   }
 
-  remove(id: number): void {
-    const idx = this.budgets.findIndex((b) => b.id === id);
-    if (idx === -1) throw new NotFoundException(`Budget ${id} no existe`);
-    this.budgets.splice(idx, 1);
+  async remove(id: number) {
+    await this.findOne(id);
+    await this.prisma.budget.delete({ where: { id } });
   }
 }

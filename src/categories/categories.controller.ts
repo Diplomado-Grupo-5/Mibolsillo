@@ -9,25 +9,25 @@ export class CategoriesController {
 
   // Crear categoría
   @Post()
-  create(@Body() dto: CreateCategoryDto) {
+  async create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
   }
 
   // Obtener todas las categorías
   @Get()
-  findAll() {
+  async findAll() {
     return this.categoriesService.findAll();
   }
 
   // Obtener categoría por ID
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.categoriesService.findOne(id);
   }
 
   // Actualizar categoría (parcial)
   @Patch(':id')
-  updatePartial(
+  async updatePartial(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCategoryDto,
   ) {
@@ -36,7 +36,7 @@ export class CategoriesController {
 
   // Actualizar categoría (completo)
   @Put(':id')
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCategoryDto,
   ) {
@@ -46,7 +46,7 @@ export class CategoriesController {
   // Eliminar categoría
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    this.categoriesService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.categoriesService.remove(id);
   }
 }

@@ -7,46 +7,40 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // Crear usuario
   @Post()
-  create(@Body() dto: CreateUserDto) {
+  async create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
-  // Obtener todos los usuarios
   @Get()
-  findAll() {
+  async findAll() {
     return this.usersService.findAll();
   }
 
-  // Obtener usuario por ID
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
   }
 
-  // Actualizar usuario (parcial)
   @Patch(':id')
-  updatePartial(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateUserDto,
   ) {
     return this.usersService.update(id, dto);
   }
 
-  // Actualizar usuario (completo)
   @Put(':id')
-  update(
+  async updateFull(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateUserDto,
   ) {
     return this.usersService.update(id, dto);
   }
 
-  // Eliminar usuario
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    this.usersService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.usersService.remove(id);
   }
 }

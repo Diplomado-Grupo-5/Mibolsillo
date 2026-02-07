@@ -9,25 +9,25 @@ export class BudgetsController {
 
   // Crear presupuesto
   @Post()
-  create(@Body() dto: CreateBudgetDto) {
+  async create(@Body() dto: CreateBudgetDto) {
     return this.budgetsService.create(dto);
   }
 
   // Obtener todos los presupuestos
   @Get()
-  findAll() {
+  async findAll() {
     return this.budgetsService.findAll();
   }
 
   // Obtener presupuesto por ID
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.budgetsService.findOne(id);
   }
 
   // Actualizar presupuesto (parcial)
   @Patch(':id')
-  updatePartial(
+  async updatePartial(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateBudgetDto,
   ) {
@@ -36,7 +36,7 @@ export class BudgetsController {
 
   // Actualizar presupuesto (completo)
   @Put(':id')
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateBudgetDto,
   ) {
@@ -46,7 +46,7 @@ export class BudgetsController {
   // Eliminar presupuesto
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    this.budgetsService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.budgetsService.remove(id);
   }
 }

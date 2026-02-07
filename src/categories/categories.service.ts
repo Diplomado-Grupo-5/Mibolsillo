@@ -1,50 +1,38 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { Category } from './entities/category.entity';
 
 @Injectable()
 export class CategoriesService {
-  private categories: Category[] = [];
-  private nextId = 1;
+  constructor(private readonly prisma: PrismaService) {}
 
-  // Crear categoría
-  create(dto: CreateCategoryDto): Category {
-    const newCategory: Category = {
-      id: this.nextId++,
-      name: dto.name,
-      description: dto.description,
-      isActive: true,
-      createdAt: new Date().toISOString(),
-    };
-
-    this.categories.push(newCategory);
-    return newCategory;
+  async create(dto: CreateCategoryDto) {
+    return this.prisma.category.create({
+      data: {
+        name: dto.name,
+        description: dto.description,
+      },
+    });
   }
 
-  // Obtener todas las categorías
-  findAll(): Category[] {
-    return this.categories;
+  async findAll() {
+    return this.prisma.category.findMany({ orderBy: { id: 'asc' } });
   }
 
-  // Obtener una categoría por id
-  findOne(id: number): Category {
-    const found = this.categories.find((c) => c.id === id);
+  async findOne(id: number) {
+    const found = await this.prisma.category.findUnique({ where: { id } });
     if (!found) throw new NotFoundException(`Category ${id} no existe`);
     return found;
   }
 
-  // Actualizar categoría
-  update(id: number, dto: UpdateCategoryDto): Category {
-    const category = this.findOne(id);
-    Object.assign(category, dto);
-    return category;
+  async update(id: number, dto: UpdateCategoryDto) {
+    await this.findOne(id);
+    return this.prisma.category.update({ where: { id }, data: dto });
   }
 
-  // Eliminar categoría
-  remove(id: number): void {
-    const idx = this.categories.findIndex((c) => c.id === id);
-    if (idx === -1) throw new NotFoundException(`Category ${id} no existe`);
-    this.categories.splice(idx, 1);
+  async remove(id: number) {
+    await this.findOne(id);
+    await this.prisma.category.delete({ where: { id } });
   }
 }

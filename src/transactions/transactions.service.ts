@@ -1,52 +1,42 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { Transaction } from './entities/transaction.entity';
 
 @Injectable()
 export class TransactionsService {
-  private transactions: Transaction[] = [];
-  private nextId = 1;
+  constructor(private readonly prisma: PrismaService) {}
 
-  create(dto: CreateTransactionDto): Transaction {
-    const newTransaction: Transaction = {
-      id: this.nextId++,
-
-      userId: dto.userId,
-      categoryId: dto.categoryId,
-      type: dto.type,
-      amount: dto.amount,
-      description: dto.description,
-
-      date: dto.date ?? new Date().toISOString(),
-
-      isActive: true,
-      createdAt: new Date().toISOString(),
-    };
-
-    this.transactions.push(newTransaction);
-    return newTransaction;
+  async create(dto: CreateTransactionDto) {
+    return this.prisma.transaction.create({
+      data: {
+        userId: dto.userId,
+        categoryId: dto.categoryId,
+        type: dto.type,
+        amount: dto.amount,
+        description: dto.description,
+        date: dto.date ? new Date(dto.date) : new Date(),
+      },
+    });
   }
 
-  findAll(): Transaction[] {
-    return this.transactions;
+  async findAll() {
+    return this.prisma.transaction.findMany({ orderBy: { id: 'asc' } });
   }
 
-  findOne(id: number): Transaction {
-    const found = this.transactions.find((t) => t.id === id);
+  async findOne(id: number) {
+    const found = await this.prisma.transaction.findUnique({ where: { id } });
     if (!found) throw new NotFoundException(`Transaction ${id} no existe`);
     return found;
   }
 
-  update(id: number, dto: UpdateTransactionDto): Transaction {
-    const transaction = this.findOne(id);
-    Object.assign(transaction, dto);
-    return transaction;
+  async update(id: number, dto: UpdateTransactionDto) {
+    await this.findOne(id);
+    return this.prisma.transaction.update({ where: { id }, data: dto });
   }
 
-  remove(id: number): void {
-    const idx = this.transactions.findIndex((t) => t.id === id);
-    if (idx === -1) throw new NotFoundException(`Transaction ${id} no existe`);
-    this.transactions.splice(idx, 1);
+  async remove(id: number) {
+    await this.findOne(id);
+    await this.prisma.transaction.delete({ where: { id } });
   }
 }
